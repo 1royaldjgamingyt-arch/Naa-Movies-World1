@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Naa Movies World</string>
+    <string name="brand_uppercase">NAA MOVIES WORLD</string>
+    <string name="brand_tagline">STREAM INDIA &amp; WORLD CINEMA IN 4K</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_explore">Explore</string>
+    <string name="nav_watchlist">Watchlist</string>
+    <string name="watch_now_hd">Watch Now in HD</string>
+    <string name="resume_watching">Resume HD</string>
+    <string name="add_to_watchlist">Watchlist</string>
+    <string name="in_watchlist">Saved</string>
+    <string name="search_placeholder">Search movies, Telugu, Tamil, genres…</string>
+    <string name="empty_watchlist_title">Your Watchlist is Empty</string>
+    <string name="empty_watchlist_body">Tap the bookmark icon on any Telugu, Tamil, Hindi, or English film to save it locally for instant HD streaming.</string>
+</resources>

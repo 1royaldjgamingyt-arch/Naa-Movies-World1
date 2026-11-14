@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Naa Movies Admin</string>
+    <string name="brand_uppercase">NAA MOVIES WORLD ADMIN</string>
+    <string name="brand_tagline">STUDIO CATALOG &amp; STREAMING CONTROL</string>
+    <string name="sign_in_headline">Studio Admin Portal</string>
+    <string name="sign_in_subtitle">Sign in with your authorized studio administrator Google account to manage movies, posters, categories, and stream visibility.</string>
+    <string name="sign_in_google">Sign in with Studio Google Account</string>
+</resources>

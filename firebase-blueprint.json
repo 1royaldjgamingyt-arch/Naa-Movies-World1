@@ -1,0 +1,74 @@
+{
+  "entities": {
+    "Movie": {
+      "title": "Movie",
+      "description": "A legally licensed or public-domain movie entry published to the Naa Movies World streaming catalog.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Movie title (1-120 chars)" },
+        "description": { "type": "string", "description": "Synopsis / storyline (1-1200 chars)" },
+        "language": {
+          "type": "string",
+          "enum": ["Telugu", "Tamil", "Hindi", "English"],
+          "description": "Primary audio language"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["Action", "Thriller", "Drama", "Sci-Fi", "Romance", "Comedy", "Adventure", "Documentary"],
+          "description": "Primary movie category"
+        },
+        "genres": { "type": "array", "description": "1 to 5 genre tags" },
+        "releaseYear": { "type": "integer", "description": "Release year (1920-2035)" },
+        "durationMinutes": { "type": "integer", "description": "Runtime in minutes (1-600)" },
+        "rating": { "type": "number", "description": "Curated rating out of 10.0" },
+        "qualityBadge": {
+          "type": "string",
+          "enum": ["4K UHD", "1080p HD", "720p HD"],
+          "description": "Streaming video resolution tier"
+        },
+        "posterUrl": { "type": "string", "description": "HTTPS poster image URL, compressed Base64 data URI, or empty if using bundled artwork" },
+        "posterKey": { "type": "string", "description": "Bundled local drawable key for offline/fallback poster art" },
+        "streamUrl": { "type": "string", "description": "Licensed HTTPS/HLS/MP4 stream URL" },
+        "trending": { "type": "boolean", "description": "Featured in Trending carousel" },
+        "latest": { "type": "boolean", "description": "Featured in Latest Releases" },
+        "featured": { "type": "boolean", "description": "Eligible for Hero Banner spotlight" },
+        "licenseConfirmed": { "type": "boolean", "description": "Admin attestation that content is legally licensed" },
+        "licenseNote": { "type": "string", "description": "License/rights holder attribution note" },
+        "status": {
+          "type": "string",
+          "enum": ["published", "draft"],
+          "description": "Catalog visibility state (published for public User App, draft for unpublished)"
+        },
+        "createdBy": { "type": "string", "description": "UID of admin creator" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server creation timestamp via FieldValue.serverTimestamp()" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server update timestamp via FieldValue.serverTimestamp()" }
+      },
+      "required": [
+        "title", "description", "language", "category", "genres",
+        "releaseYear", "durationMinutes", "rating", "qualityBadge",
+        "posterUrl", "posterKey", "streamUrl", "trending", "latest",
+        "featured", "licenseConfirmed", "licenseNote", "status",
+        "createdBy", "createdAt", "updatedAt"
+      ]
+    },
+    "AdminRecord": {
+      "title": "AdminRecord",
+      "description": "Server-managed admin access record.",
+      "type": "object",
+      "properties": {
+        "role": { "type": "string", "description": "Admin role label" }
+      },
+      "required": ["role"]
+    }
+  },
+  "firestore": {
+    "/movies/{movieId}": {
+      "schema": { "$ref": "#/entities/Movie" },
+      "description": "Licensed streaming movie catalog. Published movies are publicly readable without login; only verified admins can read drafts or modify catalog documents."
+    },
+    "/admins/{adminUid}": {
+      "schema": { "$ref": "#/entities/AdminRecord" },
+      "description": "Read-only admin membership records."
+    }
+  }
+}

@@ -1,0 +1,117 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Hardened Global Primitives ---
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isBootstrapAdmin() {
+      return isSignedIn() &&
+             'email_verified' in request.auth.token &&
+             request.auth.token.email_verified == true &&
+             'email' in request.auth.token &&
+             request.auth.token.email == '1royaldjgamingyt@gmail.com';
+    }
+
+    function isAdmin() {
+      return isBootstrapAdmin() ||
+             (isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+    }
+
+    // --- Entity Validation Blueprints ---
+    function isValidMovie(data) {
+      return data.title is string && data.title.size() >= 1 && data.title.size() <= 120 &&
+             data.description is string && data.description.size() >= 1 && data.description.size() <= 1200 &&
+             data.language in ['Telugu', 'Tamil', 'Hindi', 'English'] &&
+             data.category in ['Action', 'Thriller', 'Drama', 'Sci-Fi', 'Romance', 'Comedy', 'Adventure', 'Documentary'] &&
+             data.genres is list && data.genres.size() >= 1 && data.genres.size() <= 5 && data.genres[0] is string &&
+             data.releaseYear is int && data.releaseYear >= 1920 && data.releaseYear <= 2035 &&
+             data.durationMinutes is int && data.durationMinutes >= 1 && data.durationMinutes <= 600 &&
+             (data.rating is float || data.rating is int) && data.rating >= 0.0 && data.rating <= 10.0 &&
+             data.qualityBadge in ['4K UHD', '1080p HD', '720p HD'] &&
+             data.posterUrl is string && data.posterUrl.size() <= 250000 &&
+             data.posterKey is string && data.posterKey.size() <= 80 &&
+             data.streamUrl is string && data.streamUrl.size() >= 1 && data.streamUrl.size() <= 1000 &&
+             data.trending is bool &&
+             data.latest is bool &&
+             data.featured is bool &&
+             data.licenseConfirmed is bool && data.licenseConfirmed == true &&
+             data.licenseNote is string && data.licenseNote.size() >= 1 && data.licenseNote.size() <= 300 &&
+             data.status in ['published', 'draft'] &&
+             data.createdBy is string && data.createdBy.size() >= 1 && data.createdBy.size() <= 128 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    // --- Collection Rules ---
+
+    // Shared Licensed Movie Catalog
+    // Public User App reads published movies without authentication;
+    // Only authorized admins can view unpublished drafts or create/update/delete movies.
+    match /movies/{movieId} {
+      allow get: if isValidId(movieId) && (existing().status == 'published' || isAdmin());
+      // No exists()/get() in list queries per cost-optimization invariant
+      allow list: if existing().status == 'published' || isBootstrapAdmin();
+
+      allow create: if isSignedIn() &&
+                       isValidId(movieId) &&
+                       isValidMovie(incoming()) &&
+                       isAdmin() &&
+                       incoming().createdBy == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'title', 'description', 'language', 'category', 'genres',
+                         'releaseYear', 'durationMinutes', 'rating', 'qualityBadge',
+                         'posterUrl', 'posterKey', 'streamUrl', 'trending', 'latest',
+                         'featured', 'licenseConfirmed', 'licenseNote', 'status',
+                         'createdBy', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'title', 'description', 'language', 'category', 'genres',
+                         'releaseYear', 'durationMinutes', 'rating', 'qualityBadge',
+                         'posterUrl', 'posterKey', 'streamUrl', 'trending', 'latest',
+                         'featured', 'licenseConfirmed', 'licenseNote', 'status',
+                         'createdBy', 'createdAt', 'updatedAt'
+                       ]);
+
+      allow update: if isSignedIn() &&
+                       isValidId(movieId) &&
+                       isValidMovie(incoming()) &&
+                       isAdmin() &&
+                       incoming().createdBy == existing().createdBy &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'title', 'description', 'language', 'category', 'genres',
+                         'releaseYear', 'durationMinutes', 'rating', 'qualityBadge',
+                         'posterUrl', 'posterKey', 'streamUrl', 'trending', 'latest',
+                         'featured', 'licenseConfirmed', 'licenseNote', 'status', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(movieId) && isAdmin();
+    }
+
+    // Read-only admin lookup (never writable by clients)
+    match /admins/{adminUid} {
+      allow get: if isSignedIn() && isValidId(adminUid) && request.auth.uid == adminUid;
+      allow list, write: if false;
+    }
+  }
+}

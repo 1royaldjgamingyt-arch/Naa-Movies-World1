@@ -1,0 +1,6 @@
+{
+  "name": "Naa Movies World",
+  "description": "Premium dark-themed movie streaming Android app featuring Telugu, Tamil, Hindi, and English films, HD player, watchlist, and licensed catalog admin panel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
